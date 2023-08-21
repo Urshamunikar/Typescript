@@ -1,3 +1,47 @@
+// creating a global class for state managing i.e exchanging variables and methods in different class
+// for example getting access to userinput 
+
+class ProjectState{
+  // adding listener wherenever something changes
+  private listeners: any[]= [];
+  private projects:any[]=[];
+  // creating a private static instance of projectState
+  private static instance: ProjectState
+  // constructor is needed for creating a new object
+  private constructor(){}
+
+  // this assure that if there is instance created then returing that instance otherwise creating a new object of projectState and return it
+  static getInstance(){
+    if(this.instance){
+      return this.instance
+    }
+    this.instance = new ProjectState();
+    return this.instance
+  }
+
+  addListener(listenerFn: Function) {
+    this.listeners.push(listenerFn);
+  }
+
+  addProject(title:string, description:string, people:number){
+    const newProject = {
+      id: Math.random().toString(),
+      title:title,
+      description:description,
+      people:people
+    }
+    this.projects.push(newProject)
+
+    for(const listenersFn of this.listeners){
+      // using slice because sending the copy of array as array is reference type and we don't want it to be changed from other side
+      listenersFn(this.projects.slice())
+    }
+  }
+
+}
+// using instance of class to assure that there is only one instance of that class (ProjectState)
+const prjState = ProjectState.getInstance();
+
 // validating user input
 interface Validatable {
   value: string | number,
@@ -98,7 +142,8 @@ class ProjectInput{
     event.preventDefault();
     const userInput = this.gatherUserInput();
     if(Array.isArray(userInput)){
-      console.log(userInput);
+      const[title, description, people] = userInput;
+      prjState.addProject(title, description, people);
       this.clearInputs()
     }
   }
@@ -161,17 +206,35 @@ class ProjectList{
     // everything inside <section> since there is no type for HTML section so simply HTMLElement
     element:HTMLElement;
 
+    assignedProjects:any[];
+
     constructor(private type : 'active' | 'finished'){
       this.templateElement= document.getElementById("project-list")! as HTMLTemplateElement;
       this.hostElement = document.getElementById('app')! as HTMLDivElement;
+      this.assignedProjects=[]
   
       const importedNode = document.importNode(this.templateElement.content, true)
   
       // this is the first element inside the template i.e from line 33 to 38
       this.element= importedNode.firstElementChild as HTMLElement
       this.element.id = `${this.type}-projects`
+      // adding listener
+      prjState.addListener((projects:any[]) => {
+        this.assignedProjects = projects
+        this.renderProjects()
+
+      })
       this.attach();
       this.renderContent();  
+    }
+    private renderProjects (){
+      const listEl = document.getElementById(`${this.type}-projects-list`)! as HTMLUListElement;
+      for(const prjItem of this.assignedProjects){
+        const listItem = document.createElement('li');
+        listItem.textContent = prjItem.title;
+        listEl.appendChild(listItem)
+      }
+
     }
     // displaying the list content in different tags like h2, ul
     private renderContent(){
