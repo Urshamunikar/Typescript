@@ -1,3 +1,40 @@
+// validating user input
+interface Validatable {
+  value: string | number,
+  required?: boolean,
+  maxLength?: number,
+  minLength?: number,
+  max?: number,
+  min?: number,
+}
+function validate(validatableInput: Validatable){
+  let isValid = true;
+  if(validatableInput.required){
+    isValid = isValid && validatableInput.value.toString().trim().length !== 0
+  }
+  if(
+    validatableInput.minLength != null && typeof validatableInput.value === "string"
+  ){
+    isValid = isValid && validatableInput.value.length >= validatableInput.minLength
+  }
+  if(
+    validatableInput.maxLength != null && typeof validatableInput.value === "string"
+  ){
+    isValid = isValid && validatableInput.value.length <= validatableInput.maxLength
+  }
+  if(
+    validatableInput.min != null && typeof validatableInput.value === "number"
+  ){
+    isValid = isValid && validatableInput.value >= validatableInput.min
+  }  
+  if(
+    validatableInput.max != null && typeof validatableInput.value === "number"
+  ){
+    isValid = isValid && validatableInput.value <= validatableInput.max
+  }
+  return isValid
+
+}
 // autobind decorator
 // _ and _2 tells the typescript u are aware about the unused parameters but then u need to accept that because of some reason
 function autobind(_:any, _2:string, descriptor:PropertyDescriptor){
@@ -58,8 +95,48 @@ class ProjectInput{
   @autobind
   private submitHandler(event: Event) {
     event.preventDefault();
-    console.log(this.titleInputElement.value);
+    const userInput = this.gatherUserInput();
+    if(Array.isArray(userInput)){
+      console.log(userInput);
+      this.clearInputs()
+    }
   }
+  private gatherUserInput():[string, string, number] | void {
+    const enteredTitle = this.titleInputElement.value
+    const enteredDescription = this.descriptionInputElement.value
+    const enteredPeople = this.peopleInputElement.value
+
+    const titleValidate: Validatable = {
+      value: enteredTitle,
+      required:true,
+      minLength:5
+    }  
+      const descriptionValidate: Validatable = {
+      value: enteredDescription,
+      required:true,
+      minLength:15
+    }  
+      const peopleValidate: Validatable = {
+      value: enteredPeople,
+      required:true,
+      min:1,
+      max:20
+    }
+    if(!validate(titleValidate)|| !validate(descriptionValidate) || !validate(peopleValidate)){
+      alert("Invalid value")
+      return;
+    }else{
+      return [enteredTitle, enteredDescription, +enteredPeople]
+    }
+  }
+
+  private clearInputs(){
+    this.titleInputElement.value = ''
+    this.descriptionInputElement.value = ''
+    this.peopleInputElement.value = ''
+  }
+
+
   // setting event listener need to bind because the "this" in configure refers to this in submithandler
   private configure() {
     this.element.addEventListener('submit', this.submitHandler);
