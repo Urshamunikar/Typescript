@@ -1,3 +1,17 @@
+// autobind decorator
+// _ and _2 tells the typescript u are aware about the unused parameters but then u need to accept that because of some reason
+function autobind(_:any, _2:string, descriptor:PropertyDescriptor){
+  const originalMethod = descriptor.value;
+  const adjDescriptor: PropertyDescriptor = {
+    configurable: true,
+    get() {
+      const boundFn = originalMethod.bind(this);
+      return boundFn;
+    }
+  };
+  return adjDescriptor;
+
+}
 // making the html template visible using OOP 
 // in this class our goal is to access the template in html and render in <div id="app"></div> in file index.html
 class ProjectInput{
@@ -34,21 +48,21 @@ class ProjectInput{
     this.element.id = 'user-input'
 
 
-    this.titleInputElement= document.querySelector('#title') as HTMLInputElement;
-    this.descriptionInputElement= document.querySelector('#description') as HTMLInputElement;
-    this.peopleInputElement= document.querySelector('#people') as HTMLInputElement;
+    this.titleInputElement= this.element.querySelector('#title') as HTMLInputElement;
+    this.descriptionInputElement= this.element.querySelector('#description') as HTMLInputElement;
+    this.peopleInputElement= this.element.querySelector('#people') as HTMLInputElement;
 
     this.configure()
     this.attach()
   }
-  private submitHandler(event:Event){
+  @autobind
+  private submitHandler(event: Event) {
     event.preventDefault();
-    console.log(this.titleInputElement.value)
-
+    console.log(this.titleInputElement.value);
   }
   // setting event listener need to bind because the "this" in configure refers to this in submithandler
   private configure() {
-    this.element.addEventListener('submit', this.submitHandler.bind(this))
+    this.element.addEventListener('submit', this.submitHandler);
 
   }
   private attach() {

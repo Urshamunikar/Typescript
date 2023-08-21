@@ -1,3 +1,15 @@
+// autobind decorator
+function autobind(target, methodname, descriptor) {
+    var originalMethod = descriptor.value;
+    var adjDescriptor = {
+        configurable: true,
+        get: function () {
+            var boundFn = originalMethod.bind(this);
+            return boundFn;
+        }
+    };
+    return adjDescriptor;
+}
 // making the html template visible using OOP 
 // in this class our goal is to access the template in html and render in <div id="app"></div> in file index.html
 var ProjectInput = /** @class */ (function () {
@@ -17,6 +29,7 @@ var ProjectInput = /** @class */ (function () {
         this.attach();
     }
     ProjectInput.prototype.submitHandler = function (event) {
+        console.log("hi");
         event.preventDefault();
         console.log(this.titleInputElement.value);
     };
