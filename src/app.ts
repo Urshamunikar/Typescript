@@ -51,11 +51,12 @@ function autobind(_:any, _2:string, descriptor:PropertyDescriptor){
 }
 // making the html template visible using OOP 
 // in this class our goal is to access the template in html and render in <div id="app"></div> in file index.html
+// project input class for rendering form and gathering user input 
 class ProjectInput{
   // everything inside <template>
   templateElement:HTMLTemplateElement;
 
-  // <div id="app"></div>
+  // <div id="app"></div> is where you wanna display
   hostElement: HTMLDivElement;
 
   // everything inside <form>
@@ -142,10 +143,49 @@ class ProjectInput{
     this.element.addEventListener('submit', this.submitHandler);
 
   }
+  // attach list to DOM
   private attach() {
     this.hostElement.insertAdjacentElement('afterbegin', this.element)
     
   }
 }
 
-const prjInput = new ProjectInput()
+// project list class for rendering list of project 
+class ProjectList{
+    // everything inside <template> line : 32
+    templateElement:HTMLTemplateElement;
+
+    // <div id="app"></div> is where you wanna display
+    hostElement: HTMLDivElement;
+  
+    // everything inside <section> since there is no type for HTML section so simply HTMLElement
+    element:HTMLElement;
+
+    constructor(private type : 'active' | 'finished'){
+      this.templateElement= document.getElementById("project-list")! as HTMLTemplateElement;
+      this.hostElement = document.getElementById('app')! as HTMLDivElement;
+  
+      const importedNode = document.importNode(this.templateElement.content, true)
+  
+      // this is the first element inside the template i.e from line 33 to 38
+      this.element= importedNode.firstElementChild as HTMLElement
+      this.element.id = `${this.type}-projects`
+      this.attach();
+      this.renderContent();  
+    }
+    // displaying the list content in different tags like h2, ul
+    private renderContent(){
+      const listId = `${this.type}-projects-list`
+      this.element.querySelector('ul')!.id = listId;
+      this.element.querySelector('h2')!.textContent = this.type.toUpperCase() + ' PROJECTS'
+    }
+    private attach() {
+      this.hostElement.insertAdjacentElement('beforeend', this.element)
+      
+    }
+  
+}
+
+const prjInput = new ProjectInput();
+const activePrjList = new ProjectList('active')
+const finishedPrjList = new ProjectList('finished')
