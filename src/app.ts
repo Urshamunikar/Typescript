@@ -1,10 +1,21 @@
+enum ProjectStatus{
+  Active, 
+  Finished
+}
+// creating a class type instead of type or interface so that it can be extended
+class Project{
+  // by giving public infront of variable it creates properties and assiging both
+  constructor(public id: string, public title: string, public description:string, public people:number,  public status:ProjectStatus){}
+}
+type Listener = (item:Project[]) => void;
+
 // creating a global class for state managing i.e exchanging variables and methods in different class
 // for example getting access to userinput 
 
 class ProjectState{
   // adding listener wherenever something changes
-  private listeners: any[]= [];
-  private projects:any[]=[];
+  private listeners: Listener[]= [];
+  private projects:Project[]=[];
   // creating a private static instance of projectState
   private static instance: ProjectState
   // constructor is needed for creating a new object
@@ -19,17 +30,18 @@ class ProjectState{
     return this.instance
   }
 
-  addListener(listenerFn: Function) {
+  addListener(listenerFn: Listener) {
     this.listeners.push(listenerFn);
   }
 
   addProject(title:string, description:string, people:number){
-    const newProject = {
-      id: Math.random().toString(),
-      title:title,
-      description:description,
-      people:people
-    }
+    const newProject = new Project (
+      Math.random().toString(),
+      title,
+      description,
+      people,
+      ProjectStatus.Active
+    )
     this.projects.push(newProject)
 
     for(const listenersFn of this.listeners){
@@ -219,7 +231,7 @@ class ProjectList{
       this.element= importedNode.firstElementChild as HTMLElement
       this.element.id = `${this.type}-projects`
       // adding listener
-      prjState.addListener((projects:any[]) => {
+      prjState.addListener((projects:Project[]) => {
         this.assignedProjects = projects
         this.renderProjects()
 
